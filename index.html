@@ -431,7 +431,38 @@ window.onload = () => {
   document.getElementById('no-webhook').style.display='none';
   document.getElementById('page-leads').style.display='flex';
   loadLeads();
+  syncBlacklistFromServer();
 };
+
+// El servidor (Sheet "Blacklist") es la fuente de verdad real, compartida con
+// la extensión de Chrome. localStorage queda solo como cache instantáneo.
+async function syncBlacklistFromServer(){
+  try{
+    const res = await fetch(webhookUrl, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'getBlacklist'})
+    });
+    const data = await res.json();
+    if(data.success && Array.isArray(data.blacklist)){
+      blacklist = new Map(data.blacklist.map(e=>[e.phone, e]));
+      localStorage.setItem('baali_blacklist', JSON.stringify([...blacklist.values()]));
+      updateBlacklistBadge();
+      renderList();
+      updateBadge();
+      if(document.getElementById('blacklist').style.display==='block') renderBlacklist();
+    }
+  } catch(e){ /* sin conexión: seguimos con el cache local */ }
+}
+async function persistBlacklistToServer(){
+  try{
+    await fetch(webhookUrl, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({action:'updateBlacklist', blacklist:[...blacklist.values()]})
+    });
+  } catch(e){
+    notify('⚠️ Error guardando lista negra en el servidor', 'err');
+  }
+}
 
 function showNoWebhook(){
   document.getElementById('no-webhook').style.display='flex';
@@ -765,6 +796,7 @@ function notify(msg, type='ok'){
 function saveBlacklist(){
   localStorage.setItem('baali_blacklist', JSON.stringify([...blacklist.values()]));
   updateBlacklistBadge();
+  persistBlacklistToServer();
 }
 function updateBlacklistBadge(){
   const b = document.getElementById('badge-blacklist');
