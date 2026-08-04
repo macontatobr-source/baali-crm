@@ -718,8 +718,8 @@ function abrirConversacion(){
   } else {
     const partes = raw.split(' | ');
     body.innerHTML = partes.map(p=>{
-      const esYo = p.startsWith('YO:');
-      const texto = p.replace(/^(YO|ELLOS):\s*/,'');
+      const esYo = /^(\[YO\]|YO:)/.test(p.trim());
+      const texto = p.replace(/^\s*(\[YO\]|\[ELLOS\]|YO:|ELLOS:)\s*/,'');
       return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${escapeHtml(texto)}</div>`;
     }).join('');
   }
