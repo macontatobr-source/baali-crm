@@ -54,6 +54,9 @@ nav{padding:10px 8px;flex:1}
 #filters{display:flex;gap:5px}
 .filter-btn{flex:1;padding:5px 0;border-radius:6px;font-size:12px;font-weight:600;border:1px solid #E2E8F0;background:#fff;color:#94A3B8}
 .filter-btn.active{border-color:#3B82F6;background:#EFF6FF;color:#3B82F6}
+.cat-btn{flex:1;padding:5px 0;border-radius:6px;font-size:11px;font-weight:600;border:1px solid #E2E8F0;background:#fff;color:#94A3B8}
+.cat-btn.active{border-color:#10B981;background:#ECFDF5;color:#10B981}
+.cat-tag{font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:#ECFDF5;color:#059669}
 #leads-container{flex:1;overflow-y:auto}
 .lead-item{padding:11px 14px;border-bottom:1px solid #F8FAFC;cursor:pointer;border-left:3px solid transparent;transition:background .1s}
 .lead-item:hover{background:#F8FAFC}
@@ -284,6 +287,12 @@ nav{padding:10px 8px;flex:1}
             <button class="filter-btn" onclick="setFilter('tibio',this)">🟡</button>
             <button class="filter-btn" onclick="setFilter('frio',this)">🔵</button>
           </div>
+          <div id="cat-filters" style="display:flex;gap:5px;margin-top:5px">
+            <button class="cat-btn active" onclick="setCat('todos',this)">Todos</button>
+            <button class="cat-btn" onclick="setCat('inversion',this)">💰 Inv.</button>
+            <button class="cat-btn" onclick="setCat('alquiler',this)">🏖️ Alq.</button>
+            <button class="cat-btn" onclick="setCat('otro',this)">📋 Otro</button>
+          </div>
         </div>
         <div id="leads-container">
           <div id="loading-state">Cargando leads...</div>
@@ -397,6 +406,7 @@ nav{padding:10px 8px;flex:1}
 // ── STATE ──────────────────────────────────────────────────────────────────────
 let leads = [];
 let filtro = 'todos';
+let catFiltro = 'todos';
 let selectedLead = null;
 let contacted = new Set();
 let blacklist = new Map(); // phone -> {phone, nombre}
@@ -527,6 +537,12 @@ function setFilter(f, btn){
   btn.classList.add('active');
   renderList();
 }
+function setCat(c, btn){
+  catFiltro=c;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
 
 function renderList(){
   const q = (document.getElementById('search').value||'').toLowerCase();
@@ -534,7 +550,8 @@ function renderList(){
     if(blacklist.has(l.telefono)) return false;
     const temp = l.temperatura||getTemp(l);
     if(filtro!=='todos'&&temp!==filtro) return false;
-    if(q&&!(l.nombre||'').toLowerCase().includes(q)&&!(l.numero||'').includes(q)) return false;
+    if(catFiltro!=='todos'&&(l.accion_sugerida||'').toLowerCase()!==catFiltro) return false;
+    if(q&&!(l.nombre||'').toLowerCase().includes(q)&&!(l.numero||'').includes(q)&&!(l.resumen||'').toLowerCase().includes(q)) return false;
     return true;
   });
   const container = document.getElementById('leads-container');
@@ -564,6 +581,7 @@ function leadItemHTML(l){
         <div class="lead-summary">${l.resumen||''}</div>
         <div class="lead-tags">
           <span class="temp-badge" style="background:${t.bg};color:${t.color}">${t.label}</span>
+          ${['inversion','alquiler','transfer','cambio'].includes((l.accion_sugerida||'').toLowerCase())?`<span class="cat-tag">${l.accion_sugerida}</span>`:''}
           <span class="who-last">${l.ultimo_hablo==='YO'?'↩ yo último':'↪ él último'}</span>
           ${l.contactado?'<span class="check-done">✓</span>':''}
         </div>
