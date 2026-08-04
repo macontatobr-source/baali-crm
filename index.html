@@ -590,7 +590,7 @@ function renderList(){
     if(blacklist.has(l.telefono)) return false;
     const temp = l.temperatura||getTemp(l);
     if(filtro!=='todos'&&temp!==filtro) return false;
-    if(catFiltro!=='todos'&&(l.accion_sugerida||'').toLowerCase()!==catFiltro) return false;
+    if(catFiltro!=='todos'&&(l.categoria||'').toLowerCase()!==catFiltro) return false;
     if(q&&!(l.nombre||'').toLowerCase().includes(q)&&!(l.numero||'').includes(q)&&!(l.resumen||'').toLowerCase().includes(q)) return false;
     return true;
   });
@@ -621,7 +621,7 @@ function leadItemHTML(l){
         <div class="lead-summary">${l.resumen||''}</div>
         <div class="lead-tags">
           <span class="temp-badge" style="background:${t.bg};color:${t.color}">${t.label}</span>
-          ${['inversion','alquiler','transfer','cambio'].includes((l.accion_sugerida||'').toLowerCase())?`<span class="cat-tag">${l.accion_sugerida}</span>`:''}
+          ${['inversion','alquiler','transfer','cambio'].includes((l.categoria||'').toLowerCase())?`<span class="cat-tag">${l.categoria}</span>`:''}
           <span class="who-last">${l.ultimo_hablo==='YO'?'↩ yo último':'↪ él último'}</span>
           ${l.contactado?'<span class="check-done">✓</span>':''}
         </div>
@@ -745,6 +745,7 @@ document.getElementById('conv-overlay').addEventListener('click', e=>{
 
 // ── MENSAJE TEMPLATE ──────────────────────────────────────────────────────────
 function generarMensajeTemplate(l){
+  if(l.mensaje_sugerido && l.mensaje_sugerido.trim()) return l.mensaje_sugerido;
   const nombre = (l.nombre||'').split(' ')[0];
   const novedad = 'BAALI ya está prácticamente terminado — entregamos en octubre 🏗️ y quedan solo 2 unidades disponibles';
   const yo = l.ultimo_hablo === 'YO';
