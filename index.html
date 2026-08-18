@@ -74,6 +74,9 @@ nav{padding:10px 8px;flex:1}
 .temp-badge{font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px}
 .who-last{font-size:11px;color:#94A3B8}
 .check-done{font-size:10px;color:#22C55E;font-weight:600}
+.hoy-badge{font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:#DBEAFE;color:#1D4ED8}
+.copy-btn{background:none;border:none;cursor:pointer;color:#94A3B8;padding:1px 4px;border-radius:4px;display:inline-flex;align-items:center}
+.copy-btn:hover{color:#3B82F6}
 
 /* ── DETAIL PANEL ── */
 #detail{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -300,6 +303,11 @@ nav{padding:10px 8px;flex:1}
             <button class="cat-btn" onclick="setCat('alquiler',this)">🏖️ Alq.</button>
             <button class="cat-btn" onclick="setCat('otro',this)">📋 Otro</button>
           </div>
+          <div id="date-filters" style="display:flex;gap:5px;margin-top:5px">
+            <button class="filter-btn active" onclick="setDateFilter('todos',this)">Todo</button>
+            <button class="filter-btn" onclick="setDateFilter('hoy',this)">📅 Hoy</button>
+            <button class="filter-btn" onclick="setDateFilter('semana',this)">Semana</button>
+          </div>
         </div>
         <div id="leads-container">
           <div id="loading-state">Cargando leads...</div>
@@ -415,11 +423,13 @@ nav{padding:10px 8px;flex:1}
 let leads = [];
 let filtro = 'todos';
 let catFiltro = 'todos';
+let dateFiltro = 'todos';
 let selectedLead = null;
 let contacted = new Set();
 let blacklist = new Map(); // phone -> {phone, nombre}
 let keywords = [];
 let webhookUrl = '';
+let knownLeadCount = 0;
 
 // ── COLORS ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F59E0B','#EF4444','#10B981'];
@@ -450,6 +460,8 @@ window.onload = () => {
   document.getElementById('page-leads').style.display='flex';
   loadLeads();
   syncBlacklistFromServer();
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+  setInterval(()=>{ if(document.activeElement!==document.getElementById('msg-box')) loadLeads(); }, 120000);
 };
 
 // El servidor (Sheet "Blacklist") es la fuente de verdad real, compartida con
@@ -525,9 +537,15 @@ async function loadLeads(){
         id: l.id||i+1,
         contactado: contacted.has(l.telefono)||l.contactado||false
       }));
+      const hoyStr = new Date().toISOString().slice(0,10);
+      const hoyCount = leads.filter(l=>l.fecha===hoyStr).length;
+      if(knownLeadCount>0 && hoyCount>knownLeadCount && 'Notification' in window && Notification.permission==='granted'){
+        new Notification('BAALI CRM 🌊', {body:`Nuevo mensaje recibido hoy (${hoyCount} en total)`});
+      }
+      knownLeadCount = hoyCount;
       renderList();
       updateBadge();
-      notify(`✅ ${leads.length} leads cargados`);
+      notify(`✅ ${leads.length} leads · ${hoyCount} hoy`);
     } else {
       notify('❌ Error al cargar leads','error');
     }
@@ -551,6 +569,12 @@ function setCat(c, btn){
   btn.classList.add('active');
   renderList();
 }
+function setDateFilter(f, btn){
+  dateFiltro=f;
+  document.querySelectorAll('#date-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
 
 function renderList(){
   const q = (document.getElementById('search').value||'').toLowerCase();
@@ -559,6 +583,11 @@ function renderList(){
     const temp = l.temperatura||getTemp(l);
     if(filtro!=='todos'&&temp!==filtro) return false;
     if(catFiltro!=='todos'&&(l.categoria||'').toLowerCase()!==catFiltro) return false;
+    if(dateFiltro!=='todos'){
+      const hoy=new Date().toISOString().slice(0,10);
+      if(dateFiltro==='hoy'&&l.fecha!==hoy) return false;
+      if(dateFiltro==='semana'){const d=new Date();d.setDate(d.getDate()-7);if((l.fecha||'')<d.toISOString().slice(0,10)) return false;}
+    }
     if(q&&!(l.nombre||'').toLowerCase().includes(q)&&!(l.numero||'').includes(q)&&!(l.resumen||'').toLowerCase().includes(q)) return false;
     return true;
   });
@@ -592,6 +621,7 @@ function leadItemHTML(l){
           <span class="temp-badge" style="background:${t.bg};color:${t.color}">${t.label}</span>
           ${['inversion','alquiler','transfer','cambio'].includes((l.categoria||'').toLowerCase())?`<span class="cat-tag">${l.categoria}</span>`:''}
           <span class="who-last">${l.ultimo_hablo==='YO'?'↩ yo último':'↪ él último'}</span>
+          ${l.fecha===new Date().toISOString().slice(0,10)?'<span class="hoy-badge">HOY</span>':''}
           ${l.contactado?'<span class="check-done">✓</span>':''}
         </div>
       </div>
@@ -632,6 +662,7 @@ function renderDetail(l){
     <div class="meta-item" style="color:#3B82F6">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       ${l.numero||''}
+      <button class="copy-btn" onclick="copiarNumero('${l.numero||''}')" title="Copiar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
     </div>
     <div class="meta-item" style="color:#64748B">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -697,6 +728,9 @@ function abrirWhatsApp(){
   const num = (selectedLead.numero||selectedLead.telefono||'').replace(/\D/g,'');
   if(!num) return;
   window.open(`https://wa.me/${num}`, '_blank');
+}
+function copiarNumero(num){
+  navigator.clipboard.writeText(num).then(()=>notify('📋 Número copiado')).catch(()=>notify('❌ Error al copiar'));
 }
 
 // ── MENSAJE TEMPLATE ──────────────────────────────────────────────────────────
