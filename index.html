@@ -99,42 +99,31 @@ nav{padding:10px 8px;flex:1}
 .meta2-item span{font-size:11px;color:#94A3B8}
 .meta2-item strong{font-size:12px;font-weight:600;color:#1E293B}
 
-#detail-last-msg{padding:10px 20px;border-bottom:1px solid #F1F5F9;flex-shrink:0}
-#detail-last-msg p{font-size:11px;color:#94A3B8;margin-bottom:4px}
-#detail-last-msg blockquote{font-size:13px;color:#475569;font-style:italic}
-
 #detail-conv-actions{display:flex;gap:8px;margin-top:10px}
-.conv-btn{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;color:#3B82F6;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
-.conv-btn:hover{background:#F8FAFC}
-.conv-btn-wa{color:#22C55E}
+.conv-btn{padding:8px 14px;border-radius:8px;border:1px solid #D1FAE5;background:#F0FDF4;color:#16A34A;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.conv-btn:hover{background:#DCFCE7}
 
-/* ── CONVERSATION MODAL ── */
-#conv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
-#conv-modal{background:#E5DDD5;border-radius:16px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
-#conv-header{background:#3B82F6;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#conv-header span{font-size:14px;font-weight:700}
-#conv-close{background:none;border:none;color:#fff;cursor:pointer;padding:4px}
-#conv-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:6px}
-.conv-empty{text-align:center;color:#64748B;font-size:13px;padding:30px 0}
-.bubble{max-width:78%;padding:8px 11px;border-radius:10px;font-size:13px;line-height:1.4;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 1px rgba(0,0,0,.08)}
-.bubble-them{align-self:flex-start;background:#fff;color:#1E293B;border-bottom-left-radius:2px}
-.bubble-me{align-self:flex-end;background:#DCF8C6;color:#1E293B;border-bottom-right-radius:2px}
+/* ── INLINE CHAT ── */
+#inline-conv{flex:1;overflow-y:auto;padding:12px 14px;background:#E5DDD5;display:flex;flex-direction:column;gap:5px;min-height:80px}
+.conv-empty{text-align:center;color:#6B7280;font-size:13px;padding:20px 0}
+.bubble{max-width:80%;padding:7px 11px;border-radius:10px;font-size:13px;line-height:1.45;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 1px rgba(0,0,0,.1)}
+.bubble-them{align-self:flex-start;background:#fff;color:#1E293B;border-top-left-radius:2px}
+.bubble-me{align-self:flex-end;background:#DCF8C6;color:#1E293B;border-top-right-radius:2px}
 
-#spacer{flex:1}
-
-#detail-compose{border-top:1px solid #E2E8F0;padding:14px 16px;background:#FAFAFA;flex-shrink:0}
-#compose-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-#compose-label{font-size:12px;font-weight:600;color:#64748B;display:flex;align-items:center;gap:5px}
-#compose-actions{display:flex;gap:8px}
-.compose-btn{background:none;border:none;color:#3B82F6;font-size:12px;display:flex;align-items:center;gap:3px}
-#msg-box{width:100%;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px;font-size:13px;color:#1E293B;resize:vertical;min-height:80px;background:#fff;outline:none;line-height:1.5}
-#msg-box:focus{border-color:#BFDBFE}
-#error-msg{margin-top:8px;padding:8px 12px;background:#FEF2F2;border-radius:8px;font-size:12px;color:#DC2626;display:none}
-#btn-row{display:flex;gap:8px;margin-top:10px}
-#btn-send{flex:1;padding:10px;border-radius:8px;font-weight:700;font-size:13px;border:none;background:#3B82F6;color:#fff;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .2s}
-#btn-send:disabled{background:#E2E8F0;color:#94A3B8;cursor:default}
+/* ── COMPOSE ── */
+#detail-compose{background:#F0F0F0;flex-shrink:0;border-top:1px solid #E2E8F0}
+#compose-suggest{padding:6px 12px 0;display:flex;justify-content:space-between;align-items:center}
+#compose-label{font-size:11px;font-weight:600;color:#64748B;display:flex;align-items:center;gap:4px}
+.compose-btn{background:none;border:none;color:#3B82F6;font-size:11px;display:flex;align-items:center;gap:3px;cursor:pointer}
+#wa-bar{display:flex;align-items:flex-end;gap:8px;padding:7px 12px 8px}
+#msg-box{flex:1;border:none;border-radius:20px;padding:9px 14px;font-size:13px;color:#1E293B;resize:none;min-height:38px;max-height:110px;overflow-y:auto;background:#fff;outline:none;line-height:1.45}
+#btn-send{width:42px;height:42px;border-radius:50%;border:none;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;padding:0;cursor:pointer}
+#btn-send:disabled{background:#B0BEC5;cursor:default}
 #btn-send.done{background:#22C55E}
-#btn-contact{padding:10px 14px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;color:#64748B;font-size:13px;display:flex;align-items:center;gap:5px;font-weight:500}
+#error-msg{margin:0 12px 5px;padding:7px 12px;background:#FEF2F2;border-radius:8px;font-size:12px;color:#DC2626;display:none}
+#btn-row{display:flex;gap:8px;padding:0 12px 10px}
+#btn-contact{flex:1;padding:8px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;color:#64748B;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:500}
+#btn-block{padding:8px 12px;border-radius:8px;border:1px solid #FCA5A5;background:#FEF2F2;color:#DC2626;font-size:12px;display:flex;align-items:center;gap:5px;font-weight:500}
 
 /* ── DASHBOARD ── */
 #dashboard{flex:1;overflow-y:auto;padding:28px;display:none}
@@ -233,18 +222,6 @@ nav{padding:10px 8px;flex:1}
   </div>
 </div>
 
-<!-- Conversation Modal -->
-<div id="conv-overlay">
-  <div id="conv-modal">
-    <div id="conv-header">
-      <span id="conv-title">Conversación</span>
-      <button id="conv-close" onclick="cerrarConversacion()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div id="conv-body"></div>
-  </div>
-</div>
 
 <!-- App -->
 <div id="app">
@@ -355,47 +332,38 @@ nav{padding:10px 8px;flex:1}
             <div id="detail-resumen"></div>
             <div id="detail-meta2"></div>
             <div id="detail-conv-actions">
-              <button class="conv-btn" onclick="abrirConversacion()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                Ver conversación
-              </button>
-              <button class="conv-btn conv-btn-wa" onclick="abrirWhatsApp()">
+              <button class="conv-btn" onclick="abrirWhatsApp()">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.3A8.9 8.9 0 0 0 3.6 17L2 22l5.2-1.4A8.9 8.9 0 0 0 12 21.9a9 9 0 0 0 5.6-15.6zM12 20a7.4 7.4 0 0 1-3.8-1l-.3-.2-2.8.8.8-2.7-.2-.3A7.5 7.5 0 1 1 19.5 12 7.4 7.4 0 0 1 12 20z"/></svg>
-                Abrir WhatsApp
+                Abrir en WhatsApp
               </button>
             </div>
           </div>
-          <div id="detail-last-msg" style="display:none">
-            <p>Último mensaje</p>
-            <blockquote id="detail-last-text"></blockquote>
-          </div>
-          <div id="spacer"></div>
+          <div id="inline-conv"></div>
           <div id="detail-compose">
-            <div id="compose-header">
+            <div id="compose-suggest">
               <div id="compose-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                Mensaje sugerido — editalo antes de enviar
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#F59E0B" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Sugerido por IA — editalo
               </div>
-              <div id="compose-actions">
-                <button class="compose-btn" onclick="regenerarMensaje()">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-                  Regenerar
-                </button>
-              </div>
+              <button class="compose-btn" onclick="regenerarMensaje()">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Regenerar
+              </button>
             </div>
-            <textarea id="msg-box" rows="4" placeholder="Escribí o editá el mensaje..."></textarea>
+            <div id="wa-bar">
+              <textarea id="msg-box" rows="2" placeholder="Escribí un mensaje..."></textarea>
+              <button id="btn-send" onclick="enviarMensaje()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
             <div id="error-msg"></div>
             <div id="btn-row">
-              <button id="btn-send" onclick="enviarMensaje()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Enviar por WhatsApp
-              </button>
               <button id="btn-contact" onclick="marcarContactado()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                 Marcar contactado
               </button>
               <button id="btn-block" onclick="blockSelectedLead()">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                 Bloquear
               </button>
             </div>
@@ -597,6 +565,8 @@ function renderList(){
   const container = document.getElementById('leads-container');
   document.getElementById('empty-count').textContent = `${filtered.length} leads disponibles`;
   if(!filtered.length){container.innerHTML='<div style="padding:30px;text-align:center;color:#94A3B8;font-size:13px">Sin leads con estos filtros</div>';return;}
+  const p=s=>{if(!s)return 0;const[d,m,y]=s.split('/');return new Date(y,m-1,d).getTime()};
+  filtered.sort((a,b)=>p(b.fecha)-p(a.fecha));
   container.innerHTML = filtered.map(l=>leadItemHTML(l)).join('');
 }
 
@@ -679,13 +649,8 @@ function renderDetail(l){
     <div class="meta2-item"><span>Último en hablar: </span><strong>${l.ultimo_hablo==='YO'?'🔵 Yo':'🟢 El cliente'}</strong></div>
     <div class="meta2-item"><span>Material: </span><strong style="color:${(l.material||'').includes('Sin')?'#94A3B8':'#3B82F6'}">${l.material||'Sin material'}</strong></div>`;
 
-  // Último mensaje
-  if(l.ultimo_mensaje){
-    document.getElementById('detail-last-msg').style.display='block';
-    document.getElementById('detail-last-text').textContent = `"${l.ultimo_mensaje}"`;
-  } else {
-    document.getElementById('detail-last-msg').style.display='none';
-  }
+  // Conversación inline
+  renderInlineConv(l);
 
   // Mensaje sugerido
   const msg = generarMensajeTemplate(l);
@@ -697,36 +662,31 @@ function renderDetail(l){
   const btnContact = document.getElementById('btn-contact');
   if(l.contactado){
     btnSend.disabled=true;
-    btnSend.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Ya contactado';
     btnContact.style.display='none';
   } else {
     btnSend.disabled=false;
     btnSend.classList.remove('done');
-    btnSend.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar por WhatsApp';
+    btnSend.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
     btnContact.style.display='flex';
   }
 }
 
-// ── CONVERSACION MODAL ───────────────────────────────────────────────────────
-function abrirConversacion(){
-  if(!selectedLead) return;
-  document.getElementById('conv-title').textContent = selectedLead.nombre || selectedLead.numero || 'Conversación';
-  const body = document.getElementById('conv-body');
-  const raw = selectedLead.contexto_mensajes || '';
+// ── CONVERSACION INLINE ──────────────────────────────────────────────────────
+function renderInlineConv(l){
+  const el = document.getElementById('inline-conv');
+  const raw = (l && l.contexto_mensajes) ? l.contexto_mensajes : '';
   if(!raw.trim()){
-    body.innerHTML = '<div class="conv-empty">No hay historial de mensajes guardado para este contacto.</div>';
-  } else {
-    const partes = raw.split(' | ');
-    body.innerHTML = partes.map(p=>{
-      const esYo = /^(\[YO\]|YO:)/.test(p.trim());
-      const texto = p.replace(/^\s*(\[YO\]|\[ELLOS\]|YO:|ELLOS:)\s*/,'');
-      return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${escapeHtml(texto)}</div>`;
-    }).join('');
+    el.innerHTML = '<div class="conv-empty">Sin historial aún.</div>';
+    return;
   }
-  document.getElementById('conv-overlay').style.display='flex';
-}
-function cerrarConversacion(){
-  document.getElementById('conv-overlay').style.display='none';
+  // supports \n (new workflow) and ' | ' (legacy)
+  const partes = raw.includes(' | ') ? raw.split(' | ') : raw.split('\n');
+  el.innerHTML = partes.filter(p=>p.trim()).map(p=>{
+    const esYo = /^(\[YO\]|YO:)/.test(p.trim());
+    const texto = p.replace(/^\s*(\[YO\]|\[CLIENTE\]|\[ELLOS\]|YO:|ELLOS:|CLIENTE:)\s*/,'');
+    return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${escapeHtml(texto)}</div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
 }
 function escapeHtml(s){
   const d = document.createElement('div');
@@ -739,9 +699,6 @@ function abrirWhatsApp(){
   if(!num) return;
   window.open(`https://wa.me/${num}`, '_blank');
 }
-document.getElementById('conv-overlay').addEventListener('click', e=>{
-  if(e.target.id==='conv-overlay') cerrarConversacion();
-});
 
 // ── MENSAJE TEMPLATE ──────────────────────────────────────────────────────────
 function generarMensajeTemplate(l){
@@ -787,7 +744,7 @@ async function enviarMensaje(){
   if(!msg) return;
   const btn = document.getElementById('btn-send');
   btn.disabled=true;
-  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Enviando...';
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
   document.getElementById('error-msg').style.display='none';
   try{
     const res = await fetch(webhookUrl,{
@@ -797,8 +754,11 @@ async function enviarMensaje(){
     const data = await res.json();
     if(data.success){
       btn.classList.add('done');
-      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> ¡Enviado!';
+      btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
       notify(`✅ Mensaje enviado a ${(selectedLead.nombre||'').split(' ')[0]}`);
+      // Add sent message as bubble in inline conv
+      selectedLead.contexto_mensajes = (selectedLead.contexto_mensajes||'') + (selectedLead.contexto_mensajes ? '\n' : '') + '[YO] ' + msg;
+      renderInlineConv(selectedLead);
       setTimeout(()=>marcarContactado(), 800);
     } else {
       throw new Error('Error del servidor');
@@ -808,7 +768,7 @@ async function enviarMensaje(){
     err.style.display='flex';
     err.textContent='❌ No se pudo enviar. Verificá que el workflow n8n esté activo.';
     btn.disabled=false;
-    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar por WhatsApp';
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
   }
 }
 
