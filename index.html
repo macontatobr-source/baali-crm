@@ -652,9 +652,23 @@ function renderDetail(l){
   davatar.textContent = ini;
 
   // Name + badges
-  document.getElementById('detail-name').textContent = l.nombre||'';
+  const nameEl = document.getElementById('detail-name');
+  nameEl.textContent = l.nombre||'';
+  nameEl.contentEditable='true';
+  nameEl.style.cursor='text';
+  nameEl.title='Click para editar nombre';
+  nameEl.onblur=async function(){
+    const nuevo=this.textContent.trim();
+    if(!nuevo||nuevo===selectedLead.nombre) return;
+    selectedLead.nombre=nuevo;
+    leads=leads.map(l=>l.id===selectedLead.id?{...l,nombre:nuevo}:l);
+    renderList();
+    await updateLead({nombre:nuevo});
+    notify('✏️ Nombre actualizado');
+  };
+  nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};
   const badges = document.getElementById('detail-badges');
-  badges.innerHTML = `<span class="badge" style="background:${t.bg};color:${t.color};border:1px solid ${t.dot}">${t.label}</span>`;
+  badges.innerHTML = `<span class="badge" style="background:${t.bg};color:${t.color};border:1px solid ${t.dot};cursor:pointer" title="Click para cambiar temperatura" onclick="toggleTempDropdown(event)">${t.label} ▾</span><select id="temp-select" style="display:none;font-size:11px;border-radius:6px;border:1px solid #E2E8F0;padding:2px 6px;margin-left:4px" onchange="cambiarTemperatura(this.value)"><option value="caliente"${temp==='caliente'?' selected':''}>🔴 Caliente</option><option value="tibio"${temp==='tibio'?' selected':''}>🟡 Tibio</option><option value="frio"${temp==='frio'?' selected':''}>🔵 Frío</option></select>`;
   if(l.contactado) badges.innerHTML += `<span class="badge badge-done">✓ Contactado</span>`;
 
   // Meta
@@ -792,6 +806,7 @@ async function enviarMensaje(){
       // Add sent message as bubble in inline conv
       selectedLead.contexto_mensajes = (selectedLead.contexto_mensajes||'') + (selectedLead.contexto_mensajes ? '\n' : '') + '[YO] ' + msg;
       renderInlineConv(selectedLead);
+      updateLead({contexto_mensajes: selectedLead.contexto_mensajes});
       setTimeout(()=>marcarContactado(), 800);
     } else {
       throw new Error('Error del servidor');
@@ -803,6 +818,28 @@ async function enviarMensaje(){
     btn.disabled=false;
     btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
   }
+}
+
+// ── UPDATE LEAD ───────────────────────────────────────────────────────────────
+async function updateLead(fields){
+  if(!selectedLead||!webhookUrl) return;
+  fetch(webhookUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'update',telefono:selectedLead.telefono,fields})
+  }).catch(()=>notify('⚠️ Error guardando','err'));
+}
+function toggleTempDropdown(e){
+  const s=document.getElementById('temp-select');
+  s.style.display=s.style.display==='none'?'inline-block':'none';
+  e.stopPropagation();
+}
+async function cambiarTemperatura(val){
+  if(!selectedLead) return;
+  selectedLead.temperatura=val;
+  leads=leads.map(l=>l.id===selectedLead.id?{...l,temperatura:val}:l);
+  renderDetail(selectedLead);
+  renderList();
+  await updateLead({temperatura:val});
+  notify(`🌡️ Temperatura → ${TEMP_CONFIG[val].label}`);
 }
 
 function marcarContactado(){
