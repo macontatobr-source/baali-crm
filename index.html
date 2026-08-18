@@ -461,7 +461,8 @@ window.onload = () => {
   loadLeads();
   syncBlacklistFromServer();
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
-  setInterval(()=>{ if(document.activeElement!==document.getElementById('msg-box')) loadLeads(); }, 120000);
+  setInterval(()=>{ if(document.activeElement!==document.getElementById('msg-box')) loadLeads(); }, 30000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden) loadLeads(); });
 };
 
 // El servidor (Sheet "Blacklist") es la fuente de verdad real, compartida con
@@ -545,6 +546,7 @@ async function loadLeads(){
       knownLeadCount = hoyCount;
       renderList();
       updateBadge();
+      if(selectedLead){const upd=leads.find(l=>l.telefono===selectedLead.telefono);if(upd){selectedLead=upd;renderDetail(upd);}}
       notify(`✅ ${leads.length} leads · ${hoyCount} hoy`);
     } else {
       notify('❌ Error al cargar leads','error');
@@ -728,7 +730,7 @@ function renderInlineConv(l){
   el.innerHTML = partes.filter(p=>p.trim()).map(p=>{
     const esYo = /^(\[YO\]|YO:)/.test(p.trim());
     const texto = p.replace(/^\s*(\[YO\]|\[CLIENTE\]|\[ELLOS\]|YO:|ELLOS:|CLIENTE:)\s*/,'');
-    return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${escapeHtml(texto)}</div>`;
+    return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${waMarkdown(texto)}</div>`;
   }).join('');
   el.scrollTop = el.scrollHeight;
 }
@@ -736,6 +738,12 @@ function escapeHtml(s){
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+function waMarkdown(s){
+  return escapeHtml(s)
+    .replace(/\*(.*?)\*/g,'<b>$1</b>')
+    .replace(/_(.*?)_/g,'<i>$1</i>')
+    .replace(/~(.*?)~/g,'<s>$1</s>');
 }
 function abrirWhatsApp(){
   if(!selectedLead) return;
@@ -808,6 +816,7 @@ async function enviarMensaje(){
       renderInlineConv(selectedLead);
       updateLead({contexto_mensajes: selectedLead.contexto_mensajes});
       setTimeout(()=>marcarContactado(), 800);
+      setTimeout(()=>loadLeads(), 3000);
     } else {
       throw new Error('Error del servidor');
     }
