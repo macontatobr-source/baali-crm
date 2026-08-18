@@ -105,6 +105,11 @@ nav{padding:10px 8px;flex:1}
 #detail-conv-actions{display:flex;gap:8px;margin-top:10px}
 .conv-btn{padding:8px 14px;border-radius:8px;border:1px solid #D1FAE5;background:#F0FDF4;color:#16A34A;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
 .conv-btn:hover{background:#DCFCE7}
+.etapa-sel{font-size:11px;font-weight:600;border-radius:20px;border:1px solid #C7D2FE;padding:2px 8px;background:#EEF2FF;color:#4338CA;cursor:pointer;outline:none}
+#detail-notas{width:100%;margin-top:8px;border:1.5px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-size:12px;color:#374151;resize:vertical;min-height:56px;outline:none;background:#fff;font-family:inherit;line-height:1.45}
+#detail-notas:focus{border-color:#3B82F6}
+#detail-notas::placeholder{color:#CBD5E1}
+.bubble-sender{font-size:9px;font-weight:700;display:block;margin-bottom:2px;opacity:.7}
 
 /* ── INLINE CHAT ── */
 #inline-conv{flex:1;overflow-y:auto;padding:12px 14px;background:#E5DDD5;display:flex;flex-direction:column;gap:5px;min-height:80px}
@@ -345,6 +350,8 @@ nav{padding:10px 8px;flex:1}
                 Abrir en WhatsApp
               </button>
             </div>
+            <div class="info-label" style="margin-top:10px">Notas internas</div>
+            <textarea id="detail-notas" placeholder="Escribí notas sobre este contacto..."></textarea>
           </div>
           <div id="inline-conv"></div>
           <div id="detail-compose">
@@ -433,6 +440,7 @@ let knownLeadCount = 0;
 
 // ── COLORS ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F59E0B','#EF4444','#10B981'];
+const ETAPAS = [['nuevo','📥 Nuevo'],['contactado','📞 Contactado'],['interesado','🔥 Interesado'],['propuesta','📄 Propuesta enviada'],['cerrado','✅ Cerrado']];
 const TEMP_CONFIG = {
   caliente: { dot:'#EF4444', bg:'#FEF2F2', color:'#DC2626', label:'Caliente' },
   tibio:    { dot:'#F59E0B', bg:'#FFFBEB', color:'#D97706', label:'Tibio' },
@@ -671,6 +679,7 @@ function renderDetail(l){
   nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur();}};
   const badges = document.getElementById('detail-badges');
   badges.innerHTML = `<span class="badge" style="background:${t.bg};color:${t.color};border:1px solid ${t.dot};cursor:pointer" title="Click para cambiar temperatura" onclick="toggleTempDropdown(event)">${t.label} ▾</span><select id="temp-select" style="display:none;font-size:11px;border-radius:6px;border:1px solid #E2E8F0;padding:2px 6px;margin-left:4px" onchange="cambiarTemperatura(this.value)"><option value="caliente"${temp==='caliente'?' selected':''}>🔴 Caliente</option><option value="tibio"${temp==='tibio'?' selected':''}>🟡 Tibio</option><option value="frio"${temp==='frio'?' selected':''}>🔵 Frío</option></select>`;
+  badges.innerHTML += `<select class="etapa-sel" onchange="cambiarEtapa(this.value)">${ETAPAS.map(([v,lbl])=>`<option value="${v}"${(l.etapa||'nuevo')===v?' selected':''}>${lbl}</option>`).join('')}</select>`;
   if(l.contactado) badges.innerHTML += `<span class="badge badge-done">✓ Contactado</span>`;
 
   // Meta
@@ -694,6 +703,18 @@ function renderDetail(l){
   document.getElementById('detail-meta2').innerHTML = `
     <div class="meta2-item"><span>Último en hablar: </span><strong>${l.ultimo_hablo==='YO'?'🔵 Yo':'🟢 El cliente'}</strong></div>
     <div class="meta2-item"><span>Material: </span><strong style="color:${(l.material||'').includes('Sin')?'#94A3B8':'#3B82F6'}">${l.material||'Sin material'}</strong></div>`;
+
+  // Notas
+  const notasEl = document.getElementById('detail-notas');
+  notasEl.value = l.notas||'';
+  notasEl.onblur = async function(){
+    const val = this.value;
+    if(val===(selectedLead.notas||'')) return;
+    selectedLead.notas = val;
+    leads = leads.map(x=>x.id===selectedLead.id?{...x,notas:val}:x);
+    await updateLead({notas:val});
+    notify('📝 Nota guardada');
+  };
 
   // Conversación inline
   renderInlineConv(l);
@@ -728,9 +749,13 @@ function renderInlineConv(l){
   // supports \n (new workflow) and ' | ' (legacy)
   const partes = raw.includes(' | ') ? raw.split(' | ') : raw.split('\n');
   el.innerHTML = partes.filter(p=>p.trim()).map(p=>{
-    const esYo = /^(\[YO\]|YO:)/.test(p.trim());
-    const texto = p.replace(/^\s*(\[YO\]|\[CLIENTE\]|\[ELLOS\]|YO:|ELLOS:|CLIENTE:)\s*/,'');
-    return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${waMarkdown(texto)}</div>`;
+    const t = p.trim();
+    const esYo = /^(\[YO\]|YO:)/i.test(t);
+    const esCliente = /^(\[CLIENTE\]|\[ELLOS\]|CLIENTE:|ELLOS:)/i.test(t);
+    const texto = p.replace(/^\s*(\[YO\]|\[CLIENTE\]|\[ELLOS\]|YO:|ELLOS:|CLIENTE:)\s*/i,'');
+    const label = esYo ? `<span class="bubble-sender" style="color:#25D366">Yo</span>`
+                : esCliente ? `<span class="bubble-sender" style="color:#94A3B8">Cliente</span>` : '';
+    return `<div class="bubble ${esYo?'bubble-me':'bubble-them'}">${label}${waMarkdown(texto)}</div>`;
   }).join('');
   el.scrollTop = el.scrollHeight;
 }
@@ -840,6 +865,13 @@ function toggleTempDropdown(e){
   const s=document.getElementById('temp-select');
   s.style.display=s.style.display==='none'?'inline-block':'none';
   e.stopPropagation();
+}
+async function cambiarEtapa(val){
+  if(!selectedLead) return;
+  selectedLead.etapa=val;
+  leads=leads.map(l=>l.id===selectedLead.id?{...l,etapa:val}:l);
+  await updateLead({etapa:val});
+  notify(`📋 Etapa → ${ETAPAS.find(e=>e[0]===val)?.[1]||val}`);
 }
 async function cambiarTemperatura(val){
   if(!selectedLead) return;
