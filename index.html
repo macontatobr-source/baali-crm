@@ -565,8 +565,7 @@ function renderList(){
   const container = document.getElementById('leads-container');
   document.getElementById('empty-count').textContent = `${filtered.length} leads disponibles`;
   if(!filtered.length){container.innerHTML='<div style="padding:30px;text-align:center;color:#94A3B8;font-size:13px">Sin leads con estos filtros</div>';return;}
-  const p=s=>{if(!s)return 0;const[d,m,y]=s.split('/');return new Date(y,m-1,d).getTime()};
-  filtered.sort((a,b)=>p(b.fecha)-p(a.fecha));
+  filtered.sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
   container.innerHTML = filtered.map(l=>leadItemHTML(l)).join('');
 }
 
