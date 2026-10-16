@@ -128,6 +128,17 @@ nav{padding:10px 8px;flex:1}
 #btn-send{width:42px;height:42px;border-radius:50%;border:none;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;padding:0;cursor:pointer}
 #btn-send:disabled{background:#B0BEC5;cursor:default}
 #btn-send.done{background:#22C55E}
+#btn-schedule{width:38px;height:38px;border-radius:50%;border:1px solid #E2E8F0;background:#fff;color:#64748B;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;cursor:pointer;transition:all .15s}
+#btn-schedule:hover{background:#EFF6FF;color:#3B82F6;border-color:#93C5FD}
+#btn-schedule.has-scheduled{background:#FFF7ED;color:#EA580C;border-color:#FED7AA}
+#sched-popup{position:absolute;bottom:calc(100% + 6px);right:0;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;display:none;flex-direction:column;gap:8px;min-width:230px}
+#sched-popup.show{display:flex}
+#sched-popup label{font-size:12px;font-weight:600;color:#374151}
+#sched-dt{width:100%;padding:8px 10px;border:1.5px solid #E2E8F0;border-radius:8px;font-size:12px;outline:none;color:#1E293B}
+#sched-dt:focus{border-color:#3B82F6}
+#sched-confirm{background:#3B82F6;color:#fff;border:none;border-radius:8px;padding:8px;font-size:13px;font-weight:600;cursor:pointer}
+#sched-cancel{background:none;border:none;color:#94A3B8;font-size:12px;cursor:pointer;text-align:center;padding:2px}
+.bubble-scheduled{align-self:flex-end;background:#FFF7ED;color:#92400E;border:1px dashed #FED7AA;border-radius:10px;border-top-right-radius:2px;font-size:12px;padding:6px 10px;max-width:80%;box-shadow:0 1px 1px rgba(0,0,0,.05)}
 #error-msg{margin:0 12px 5px;padding:7px 12px;background:#FEF2F2;border-radius:8px;font-size:12px;color:#DC2626;display:none}
 #btn-row{display:flex;gap:8px;padding:0 12px 10px}
 #btn-contact{flex:1;padding:8px;border-radius:8px;border:1px solid #E2E8F0;background:#fff;color:#64748B;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:500}
@@ -367,9 +378,20 @@ nav{padding:10px 8px;flex:1}
             </div>
             <div id="wa-bar">
               <textarea id="msg-box" rows="2" placeholder="Escribí un mensaje..."></textarea>
-              <button id="btn-send" onclick="enviarMensaje()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              </button>
+              <div id="sched-wrap" style="position:relative;display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <button id="btn-send" onclick="enviarMensaje()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+                <button id="btn-schedule" onclick="toggleSchedPopup()" title="Programar mensaje">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </button>
+                <div id="sched-popup">
+                  <label>📅 Programar envío</label>
+                  <input id="sched-dt" type="datetime-local">
+                  <button id="sched-confirm" onclick="confirmSchedule()">Programar</button>
+                  <button id="sched-cancel" onclick="closeSchedPopup()">Cancelar</button>
+                </div>
+              </div>
             </div>
             <div id="error-msg"></div>
             <div id="btn-row">
@@ -437,6 +459,7 @@ let blacklist = new Map(); // phone -> {phone, nombre}
 let keywords = [];
 let webhookUrl = '';
 let knownLeadCount = 0;
+const SCHED_WEBHOOK = 'https://marcelo-ai-n8n.bg4ga1.easypanel.host/webhook/baali-schedule';
 
 // ── COLORS ────────────────────────────────────────────────────────────────────
 const AVATAR_COLORS = ['#3B82F6','#8B5CF6','#EC4899','#14B8A6','#F59E0B','#EF4444','#10B981'];
@@ -718,6 +741,7 @@ function renderDetail(l){
 
   // Conversación inline
   renderInlineConv(l);
+  loadScheduledBubbles();
 
   // Mensaje sugerido
   const msg = generarMensajeTemplate(l);
@@ -1058,6 +1082,73 @@ function renderKeywords(){
     <div class="kw-text">${k}</div>
     <button onclick="removeKeyword('${k.replace(/'/g,"\\'")}')">Eliminar</button>
   </div>`).join('');
+}
+
+// ── MENSAJES PROGRAMADOS ──────────────────────────────────────────────────────
+function toggleSchedPopup(){
+  const p = document.getElementById('sched-popup');
+  const visible = p.classList.contains('show');
+  closeSchedPopup();
+  if(!visible){
+    const now = new Date(Date.now() + 60*60*1000);
+    document.getElementById('sched-dt').value = now.toISOString().slice(0,16);
+    p.classList.add('show');
+  }
+}
+function closeSchedPopup(){ document.getElementById('sched-popup').classList.remove('show'); }
+document.addEventListener('click', e => {
+  if(!document.getElementById('sched-wrap')?.contains(e.target)) closeSchedPopup();
+});
+
+async function confirmSchedule(){
+  if(!selectedLead) return;
+  const dt = document.getElementById('sched-dt').value;
+  if(!dt){ notify('⚠️ Elegí fecha y hora'); return; }
+  const msg = document.getElementById('msg-box').value.trim();
+  if(!msg){ notify('⚠️ Escribí el mensaje primero'); return; }
+  closeSchedPopup();
+  try{
+    const res = await fetch(SCHED_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'scheduleMessage', numero:selectedLead.telefono, mensaje:msg, fecha_envio:new Date(dt).toISOString()})
+    });
+    const data = await res.json();
+    if(data.success){
+      notify(`⏰ Programado para ${formatDt(dt)}`);
+      loadScheduledBubbles();
+    } else throw new Error();
+  } catch(e){ notify('❌ Error al programar mensaje'); }
+}
+
+async function loadScheduledBubbles(){
+  if(!selectedLead) return;
+  const btn = document.getElementById('btn-schedule');
+  try{
+    const res = await fetch(SCHED_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'getScheduled', numero:selectedLead.telefono})
+    });
+    const data = await res.json();
+    if(data.success && Array.isArray(data.programados) && data.programados.length > 0){
+      btn.classList.add('has-scheduled');
+      const el = document.getElementById('inline-conv');
+      // Remove stale scheduled bubbles first
+      el.querySelectorAll('.bubble-scheduled').forEach(b=>b.remove());
+      data.programados.forEach(p=>{
+        const div = document.createElement('div');
+        div.className = 'bubble bubble-scheduled';
+        div.innerHTML = `⏰ <strong>Agendado: ${formatDt(p.fecha_envio)}</strong><br>${escapeHtml(p.mensaje)}`;
+        el.appendChild(div);
+      });
+      el.scrollTop = el.scrollHeight;
+    } else {
+      btn.classList.remove('has-scheduled');
+      document.getElementById('inline-conv').querySelectorAll('.bubble-scheduled').forEach(b=>b.remove());
+    }
+  } catch(e){}
+}
+
+function formatDt(dtStr){
+  try{ return new Date(dtStr).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return dtStr; }
 }
 </script>
 </body>
