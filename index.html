@@ -739,9 +739,8 @@ function renderDetail(l){
     notify('📝 Nota guardada');
   };
 
-  // Conversación inline
-  renderInlineConv(l);
-  loadScheduledBubbles();
+  // Conversación inline — carga desde Evolution API
+  loadConversation(l);
 
   // Mensaje sugerido
   const msg = generarMensajeTemplate(l);
@@ -860,10 +859,14 @@ async function enviarMensaje(){
       btn.classList.add('done');
       btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
       notify(`✅ Mensaje enviado a ${(selectedLead.nombre||'').split(' ')[0]}`);
-      // Add sent message as bubble in inline conv
-      selectedLead.contexto_mensajes = (selectedLead.contexto_mensajes||'') + (selectedLead.contexto_mensajes ? '\n' : '') + '[YO] ' + msg;
-      renderInlineConv(selectedLead);
-      updateLead({contexto_mensajes: selectedLead.contexto_mensajes});
+      // Agregar burbuja optimista en la conversación
+      const convEl = document.getElementById('inline-conv');
+      const hora = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+      const div = document.createElement('div');
+      div.className = 'bubble bubble-me';
+      div.innerHTML = `<span class="bubble-sender" style="color:#25D366">Yo</span>${waMarkdown(msg)}<span style="font-size:10px;color:#94A3B8;display:block;margin-top:2px;text-align:right">${hora}</span>`;
+      convEl.appendChild(div);
+      convEl.scrollTop = convEl.scrollHeight;
       setTimeout(()=>marcarContactado(), 800);
       setTimeout(()=>loadLeads(), 3000);
     } else {
@@ -1082,6 +1085,35 @@ function renderKeywords(){
     <div class="kw-text">${k}</div>
     <button onclick="removeKeyword('${k.replace(/'/g,"\\'")}')">Eliminar</button>
   </div>`).join('');
+}
+
+// ── CONVERSACIÓN COMPLETA (Evolution API via n8n) ────────────────────────────
+async function loadConversation(l){
+  const el = document.getElementById('inline-conv');
+  el.innerHTML = '<div class="conv-empty" style="color:#94A3B8">Cargando conversación...</div>';
+  try{
+    const res = await fetch(SCHED_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'getConversation', numero: l.telefono||l.numero||l.telefono})
+    });
+    const data = await res.json();
+    if(data.success && Array.isArray(data.mensajes) && data.mensajes.length > 0){
+      el.innerHTML = data.mensajes.map(m=>{
+        const cls = m.fromMe ? 'bubble bubble-me' : 'bubble bubble-them';
+        const label = m.fromMe
+          ? `<span class="bubble-sender" style="color:#25D366">Yo</span>`
+          : `<span class="bubble-sender" style="color:#94A3B8">Cliente</span>`;
+        const hora = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}) : '';
+        return `<div class="${cls}">${label}${waMarkdown(m.texto)}<span style="font-size:10px;color:#94A3B8;display:block;margin-top:2px;text-align:right">${hora}</span></div>`;
+      }).join('');
+    } else {
+      // fallback al historial guardado en Sheet
+      renderInlineConv(l);
+    }
+  } catch(e){
+    renderInlineConv(l);
+  }
+  el.scrollTop = el.scrollHeight;
+  loadScheduledBubbles();
 }
 
 // ── MENSAJES PROGRAMADOS ──────────────────────────────────────────────────────
