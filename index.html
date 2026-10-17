@@ -1162,12 +1162,14 @@ async function loadScheduledBubbles(){
     if(data.success && Array.isArray(data.programados) && data.programados.length > 0){
       btn.classList.add('has-scheduled');
       const el = document.getElementById('inline-conv');
-      // Remove stale scheduled bubbles first
       el.querySelectorAll('.bubble-scheduled').forEach(b=>b.remove());
       data.programados.forEach(p=>{
         const div = document.createElement('div');
         div.className = 'bubble bubble-scheduled';
-        div.innerHTML = `⏰ <strong>Agendado: ${formatDt(p.fecha_envio)}</strong><br>${escapeHtml(p.mensaje)}`;
+        div.dataset.numero = p.numero;
+        div.dataset.fechaEnvio = p.fecha_envio;
+        div.dataset.mensaje = p.mensaje;
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px"><span>⏰ <strong>Agendado: ${formatDt(p.fecha_envio)}</strong></span><button onclick="editarProgramado(this)" style="background:none;border:none;color:#EA580C;cursor:pointer;padding:0;flex-shrink:0" title="Editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></div><div class="sched-msg-text" style="margin-top:3px">${escapeHtml(p.mensaje)}</div>`;
         el.appendChild(div);
       });
       el.scrollTop = el.scrollHeight;
@@ -1176,6 +1178,39 @@ async function loadScheduledBubbles(){
       document.getElementById('inline-conv').querySelectorAll('.bubble-scheduled').forEach(b=>b.remove());
     }
   } catch(e){}
+}
+
+function editarProgramado(btn){
+  const bubble = btn.closest('.bubble-scheduled');
+  if(bubble.querySelector('textarea')) return; // ya en edición
+  const msgDiv = bubble.querySelector('.sched-msg-text');
+  const original = bubble.dataset.mensaje;
+  msgDiv.innerHTML = `<textarea style="width:100%;font-size:12px;border:1.5px solid #EA580C;border-radius:6px;padding:5px;resize:vertical;min-height:50px;font-family:inherit;outline:none">${escapeHtml(original)}</textarea><div style="display:flex;gap:6px;margin-top:5px"><button onclick="guardarEdicionProgramado(this)" style="background:#EA580C;color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">Guardar</button><button onclick="cancelarEdicion(this)" style="background:none;border:1px solid #FED7AA;border-radius:6px;padding:4px 8px;font-size:11px;color:#92400E;cursor:pointer">Cancelar</button></div>`;
+  msgDiv.querySelector('textarea').focus();
+}
+function cancelarEdicion(btn){
+  const bubble = btn.closest('.bubble-scheduled');
+  bubble.querySelector('.sched-msg-text').innerHTML = escapeHtml(bubble.dataset.mensaje);
+}
+async function guardarEdicionProgramado(btn){
+  const bubble = btn.closest('.bubble-scheduled');
+  const nuevo = bubble.querySelector('textarea').value.trim();
+  if(!nuevo){ notify('⚠️ El mensaje no puede estar vacío'); return; }
+  btn.disabled = true; btn.textContent = '...';
+  try{
+    const res = await fetch(SCHED_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'updateScheduled', numero: bubble.dataset.numero, fecha_envio: bubble.dataset.fechaEnvio, nuevo_mensaje: nuevo})
+    });
+    const data = await res.json();
+    if(data.success){
+      bubble.dataset.mensaje = nuevo;
+      bubble.querySelector('.sched-msg-text').innerHTML = escapeHtml(nuevo);
+      notify('✏️ Mensaje actualizado');
+    } else throw new Error();
+  } catch(e){
+    notify('❌ Error al actualizar');
+    cancelarEdicion(btn);
+  }
 }
 
 function formatDt(dtStr){
